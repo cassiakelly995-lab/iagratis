@@ -34,6 +34,8 @@ h1,h2,h3,.tab,.go,summary{font-family:Fredoka,system-ui,sans-serif}
 @keyframes mv{to{transform:translateX(-50%)}}
 .search{width:100%;padding:14px 18px;border:3px solid var(--b);border-radius:16px;background:var(--card);color:var(--ink);font:700 17px Nunito,sans-serif;margin-bottom:18px;box-shadow:4px 4px 0 var(--sh)}
 :focus-visible{outline:4px solid var(--acc);outline-offset:3px}
+:root[data-theme="dark"] :focus-visible{outline-color:#FFE45C}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
 .tab{border:3px solid var(--b);background:var(--card);color:var(--ink);border-radius:14px;padding:9px 15px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 var(--sh)}
 .tab small{opacity:.7;font-size:13px;margin-left:4px}
@@ -65,6 +67,8 @@ details li{margin:6px 0}
 .ex{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:2px solid var(--b);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:15px}
 .ex span{flex:1}
 .copy{border:3px solid var(--b);background:#5CC8FF;color:#1A1233;font:700 13px Fredoka,sans-serif;padding:5px 12px;border-radius:10px;cursor:pointer}
+.bl{display:block;font:700 14px Fredoka,sans-serif;margin:10px 0 4px}
+.bi{width:100%;padding:10px 12px;border:3px solid var(--b);border-radius:12px;background:var(--card);color:var(--ink);font:600 15px Nunito,sans-serif}
 .note{margin-top:30px;font-size:14px;color:var(--mut)}
 @media (prefers-reduced-motion:reduce){.mq div{animation:none}}
 </style>
@@ -79,13 +83,14 @@ details li{margin:6px 0}
 </header>
 <div class="mq" aria-hidden="true"><div id="mq"></div></div>
 <input class="search" id="q" type="search" placeholder="🔎 Buscar por nome ou tarefa: imagem, resumo, voz, vídeo..." aria-label="Buscar IA">
-<nav class="tabs" role="tablist" id="tabs"></nav>
+<p class="sr" id="st" aria-live="polite"></p>
+<nav class="tabs" role="tablist" id="tabs" aria-label="Categorias"></nav>
 <main id="view"></main>
 <p class="note">Os planos gratuitos mudam com frequência: limites, recursos e países atendidos podem ser alterados pelas empresas. Se um link não abrir ou pedir pagamento, confira no site oficial.</p>
 </div>
 <script>
 var C=[
-{id:"chat",n:"Conversa e pesquisa",e:"💬",c:"#FF5FA2",i:"Assistentes para perguntar, explicar, escrever, resumir e analisar arquivos. Comece por aqui.",l:[
+{id:"chat",n:"Conversa e pesquisa",e:"💬",c:"#FF5FA2",k:"perguntar escrever texto resumir resumo pesquisar pesquisa assistente",i:"Assistentes para perguntar, explicar, escrever, resumir e analisar arquivos. Comece por aqui.",l:[
 ["ChatGPT","Conversa geral, textos, resumos, análise de arquivos e imagens.","https://chatgpt.com"],
 ["Claude","Textos longos, revisão e análise de PDFs e documentos.","https://claude.ai"],
 ["Gemini","Assistente do Google, integrado a Gmail, Drive e busca.","https://gemini.google.com"],
@@ -101,7 +106,7 @@ var C=[
 ["Poe","Reúne vários chatbots num só lugar para você comparar.","https://poe.com"],
 ["You.com","Busca com IA e chat, com respostas organizadas.","https://you.com"],
 ["Character.AI","Conversa com personagens para treinar diálogos e idiomas.","https://character.ai"]]},
-{id:"img",n:"Imagens e design",e:"🎨",c:"#FF8A3D",i:"Criam ilustrações, fotos, logos e peças visuais a partir de uma descrição, e ajudam a editar imagens.",l:[
+{id:"img",n:"Imagens e design",e:"🎨",c:"#FF8A3D",k:"imagem foto logo arte cartaz desenho ilustracao design post",i:"Criam ilustrações, fotos, logos e peças visuais a partir de uma descrição, e ajudam a editar imagens.",l:[
 ["Canva","Posts, cartazes e apresentações, com recursos de IA para imagem e texto.","https://www.canva.com"],
 ["Microsoft Designer","Gera imagens e artes para redes sociais a partir de texto.","https://designer.microsoft.com"],
 ["Adobe Firefly","Gera e edita imagens, treinada com conteúdo licenciado.","https://firefly.adobe.com"],
@@ -116,7 +121,7 @@ var C=[
 ["Photoroom","Remove fundo e cria fotos de produto para venda.","https://www.photoroom.com"],
 ["Clipdrop","Limpa objetos da foto, aumenta resolução e remove fundo.","https://clipdrop.co"],
 ["Pixlr","Editor de fotos online com ferramentas de IA.","https://pixlr.com"]]},
-{id:"av",n:"Vídeo e áudio",e:"🎬",c:"#5CC8FF",i:"Edição de vídeo, locução, música e transcrição de reuniões.",l:[
+{id:"av",n:"Vídeo e áudio",e:"🎬",c:"#5CC8FF",k:"video audio voz musica legenda transcricao locucao narracao",i:"Edição de vídeo, locução, música e transcrição de reuniões.",l:[
 ["CapCut","Editor de vídeo com legendas automáticas e recursos de IA.","https://www.capcut.com"],
 ["Clipchamp","Editor de vídeo da Microsoft, com narração por IA.","https://clipchamp.com"],
 ["Veed","Edita vídeo, cria legendas e remove ruído de áudio.","https://www.veed.io"],
@@ -131,7 +136,7 @@ var C=[
 ["Speechify","Lê textos em voz alta e cria narrações.","https://speechify.com"],
 ["Suno","Cria músicas completas com letra a partir de uma ideia.","https://suno.com"],
 ["Udio","Cria músicas em vários estilos a partir de texto.","https://www.udio.com"]]},
-{id:"est",n:"Escrita e estudo",e:"📚",c:"#3DDC97",i:"Revisar textos, traduzir, estudar, pesquisar artigos e transformar materiais em resumos.",l:[
+{id:"est",n:"Escrita e estudo",e:"📚",c:"#3DDC97",k:"estudar estudo resumo pdf traduzir traducao corrigir revisar texto prova faculdade",i:"Revisar textos, traduzir, estudar, pesquisar artigos e transformar materiais em resumos.",l:[
 ["NotebookLM","Você envia documentos e ele resume, responde e cria podcast em áudio.","https://notebooklm.google.com"],
 ["ChatPDF","Faça perguntas e peça resumos de qualquer PDF.","https://www.chatpdf.com"],
 ["DeepL","Tradução de alta qualidade, com ferramenta de reescrita.","https://www.deepl.com"],
@@ -144,12 +149,12 @@ var C=[
 ["Napkin AI","Transforma textos em diagramas e infográficos.","https://www.napkin.ai"],
 ["Notion","Anotações com IA para resumir e organizar o que você escreve.","https://www.notion.com"],
 ["Google AI Studio","Testa os modelos Gemini de forma mais avançada.","https://aistudio.google.com"]]},
-{id:"prod",n:"Trabalho e reuniões",e:"🗂️",c:"#FFE45C",i:"Apresentações, atas e anotações automáticas para o dia a dia de trabalho.",l:[
+{id:"prod",n:"Trabalho e reuniões",e:"🗂️",c:"#FFE45C",k:"reuniao ata apresentacao slides trabalho escritorio",i:"Apresentações, atas e anotações automáticas para o dia a dia de trabalho.",l:[
 ["Gamma","Cria apresentações e documentos a partir de um tema.","https://gamma.app"],
 ["Otter","Transcreve e resume reuniões automaticamente.","https://otter.ai"],
 ["Fireflies","Grava, transcreve e resume reuniões online.","https://fireflies.ai"],
 ["Tactiq","Transcreve reuniões do Google Meet, Zoom e Teams.","https://tactiq.io"]]},
-{id:"cod",n:"Programação",e:"💻",c:"#B79CFF",i:"Escrevem e corrigem código, ou criam páginas e apps simples.",l:[
+{id:"cod",n:"Programação",e:"💻",c:"#B79CFF",k:"programar codigo site app pagina desenvolver",i:"Escrevem e corrigem código, ou criam páginas e apps simples.",l:[
 ["GitHub Copilot","Sugere código dentro do editor, com plano gratuito.","https://github.com/features/copilot"],
 ["Cursor","Editor de código com IA embutida.","https://cursor.com"],
 ["Windsurf","Editor de código com assistente de IA.","https://windsurf.com"],
@@ -165,36 +170,54 @@ var MAN=[
 ["Qual IA usar? Escolha sua tarefa",'<div class="tasks" id="tk"></div><div id="res">Toque numa tarefa para ver as IAs indicadas.</div>'],
 ["Passo a passo: criar conta e fazer o primeiro uso",'<ol><li>Abra o link da IA na guia correspondente.</li><li>Clique em <b>Entrar</b> ou <b>Cadastrar</b>. A maioria aceita login com conta Google ou Microsoft.</li><li>Confirme o e-mail, se pedirem.</li><li>Escreva seu pedido na caixa de texto e envie.</li><li>Peça ajustes: "mais curto", "mais formal", "em tópicos".</li><li>Copie o resultado e revise antes de usar.</li></ol>'],
 ["Como escrever um bom pedido (prompt)",'<p>Um bom pedido tem quatro partes. Quanto mais claro, melhor a resposta.</p><ul><li><b>Papel:</b> quem a IA deve ser. Ex.: "Aja como assistente administrativa".</li><li><b>Contexto:</b> a situação e para quem é o texto.</li><li><b>Tarefa:</b> o que fazer, com verbo claro: escreva, resuma, compare, revise.</li><li><b>Formato:</b> tamanho, tom e estrutura. Ex.: "em 5 linhas, tom cordial".</li></ul>'],
+["Monte seu pedido em 4 campos",'<p>Preencha o que souber. O pedido pronto aparece embaixo, é só copiar.</p><label class="bl" for="b1">1. Papel</label><input class="bi" id="b1" data-f="0" placeholder="Ex.: assistente administrativa"><label class="bl" for="b2">2. Contexto</label><input class="bi" id="b2" data-f="1" placeholder="Ex.: aviso para pessoas atendidas no balcão"><label class="bl" for="b3">3. Tarefa</label><input class="bi" id="b3" data-f="2" placeholder="Ex.: escreva um aviso sobre mudança de horário"><label class="bl" for="b4">4. Formato</label><input class="bi" id="b4" data-f="3" placeholder="Ex.: 5 linhas, tom cordial"><div class="ex"><span id="bo">Seu pedido vai aparecer aqui.</span><button class="copy" data-b="1">Copiar</button></div>'],
 ["Pedidos prontos para copiar",'<div id="exs"></div>'],
 ["Cuidados importantes",'<ul><li><b>Dados pessoais:</b> não cole nome completo, CPF, RG, endereço, processo ou histórico de pessoas atendidas em IAs gratuitas. Troque por "Pessoa A" ou apague os dados antes (LGPD).</li><li><b>Confira sempre:</b> a IA pode errar números, leis, datas e links. Confirme em fonte oficial.</li><li><b>Parecer jurídico:</b> a IA ajuda em rascunhos e organização, mas não substitui análise profissional.</li><li><b>Direitos autorais:</b> verifique as regras antes de publicar imagens, músicas e vozes geradas.</li><li><b>Privacidade:</b> veja nas configurações se dá para desligar o uso das suas conversas no treino da IA.</li></ul>'],
 ["Quando a resposta não ficou boa",'<ul><li>Peça de novo com mais contexto e formato.</li><li>Mostre um exemplo do que você quer.</li><li>Divida tarefas grandes em etapas pequenas.</li><li>Teste a mesma pergunta em outra IA e compare.</li><li>Se bateu o limite grátis, espere renovar ou use outra ferramenta da mesma guia.</li></ul>']];
-var $=function(s){return document.querySelector(s)},cur="chat",ALL=[],fav=[];
+var $=function(s){return document.querySelector(s)},ALL=[],fav=[],cur="chat",TABIDS=["fav","man"];
 try{fav=JSON.parse(localStorage.getItem("iasfav")||"[]")}catch(e){}
-C.forEach(function(c){c.l.forEach(function(it){ALL.push({n:it[0],d:it[1],u:it[2],c:c})})});
+C.forEach(function(c){TABIDS.push(c.id);c.l.forEach(function(it){ALL.push({n:it[0],d:it[1],u:it[2],c:c})})});
+var h0=location.hash.slice(1);if(TABIDS.indexOf(h0)>-1)cur=h0;
 function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function norm(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
 function card(x){var f=fav.indexOf(x.n)>-1;return '<article class="card" style="--c:'+x.c.c+'"><div class="top"><span class="em">'+x.c.e+'</span><h3>'+esc(x.n)+'</h3><button class="fav" data-k="'+esc(x.n)+'" aria-pressed="'+f+'" aria-label="Favoritar '+esc(x.n)+'">'+(f?"★":"☆")+'</button></div><p>'+esc(x.d)+'</p><div class="foot"><span class="tag">'+esc(x.c.n)+'</span><a class="go" href="'+x.u+'" target="_blank" rel="noopener">Abrir '+esc(x.n)+'</a></div></article>'}
-function tabs(){var h="";C.forEach(function(c){h+='<button class="tab" role="tab" style="--c:'+c.c+'" data-id="'+c.id+'" aria-selected="'+(cur===c.id)+'">'+c.e+' '+c.n+'<small>'+c.l.length+'</small></button>'});
-h+='<button class="tab" role="tab" style="--c:#FFE45C" data-id="fav" aria-selected="'+(cur==="fav")+'">⭐ Favoritas<small>'+fav.length+'</small></button><button class="tab" role="tab" style="--c:#3DDC97" data-id="man" aria-selected="'+(cur==="man")+'">📖 Manual de uso</button>';$("#tabs").innerHTML=h}
+function tabBtn(id,label,color,count){var s=cur===id;return '<button class="tab" role="tab" style="--c:'+color+'" data-id="'+id+'" aria-selected="'+s+'" tabindex="'+(s?0:-1)+'">'+label+(count!==undefined?'<small>'+count+'</small>':'')+'</button>'}
+function tabs(){var h="";C.forEach(function(c){h+=tabBtn(c.id,c.e+' '+c.n,c.c,c.l.length)});
+h+=tabBtn("fav","⭐ Favoritas","#FFE45C",fav.length)+tabBtn("man","📖 Manual de uso","#3DDC97");$("#tabs").innerHTML=h}
 function grid(a,msg){return a.length?'<div class="grid">'+a.map(card).join("")+'</div>':'<p class="empty">'+msg+'</p>'}
-function render(){tabs();var t=$("#q").value.trim().toLowerCase(),v=$("#view");
-if(t){v.innerHTML=grid(ALL.filter(function(x){return(x.n+" "+x.d+" "+x.c.n).toLowerCase().indexOf(t)>-1}),'Nenhuma IA encontrada para "'+esc(t)+'". Tente outra palavra.');return}
+function render(){tabs();var raw=$("#q").value.trim(),t=norm(raw).split(/\s+/).filter(Boolean),v=$("#view"),st=$("#st");st.textContent="";
+if(t.length){var r=ALL.filter(function(x){var hay=norm(x.n+" "+x.d+" "+x.c.n+" "+x.c.k);return t.every(function(w){return hay.indexOf(w)>-1})});
+v.innerHTML=grid(r,'Nenhuma IA encontrada para "'+esc(raw)+'". Tente outra palavra.');st.textContent=r.length+" resultado(s) encontrado(s)";return}
 if(cur==="fav"){v.innerHTML=grid(ALL.filter(function(x){return fav.indexOf(x.n)>-1}),"Você ainda não tem favoritas. Toque na estrela ☆ de qualquer cartão para guardar aqui.");return}
 if(cur==="man"){v.innerHTML=MAN.map(function(s,i){return '<details'+(i===0?" open":"")+'><summary>'+s[0]+'</summary><div>'+s[1]+'</div></details>'}).join("");
 $("#tk").innerHTML=TASKS.map(function(k,i){return '<button class="task" data-i="'+i+'" aria-pressed="false">'+k[0]+'</button>'}).join("");
 $("#exs").innerHTML=EXS.map(function(t,i){return '<div class="ex"><span>'+esc(t)+'</span><button class="copy" data-i="'+i+'">Copiar</button></div>'}).join("");return}
 var c=C.filter(function(x){return x.id===cur})[0];
 v.innerHTML='<p class="intro">'+c.e+' '+esc(c.i)+'</p>'+grid(ALL.filter(function(x){return x.c===c}))}
-$("#tabs").addEventListener("click",function(e){var b=e.target.closest(".tab");if(b){cur=b.dataset.id;$("#q").value="";render()}});
+function goTab(id){cur=id;$("#q").value="";try{history.replaceState(null,"","#"+id)}catch(e){}render()}
+$("#tabs").addEventListener("click",function(e){var b=e.target.closest(".tab");if(b)goTab(b.dataset.id)});
+$("#tabs").addEventListener("keydown",function(e){var k=e.key;if(k!=="ArrowRight"&&k!=="ArrowLeft"&&k!=="Home"&&k!=="End")return;
+var ids=[].map.call(document.querySelectorAll(".tab"),function(b){return b.dataset.id}),i=ids.indexOf(cur);
+i=k==="ArrowRight"?(i+1)%ids.length:k==="ArrowLeft"?(i-1+ids.length)%ids.length:k==="Home"?0:ids.length-1;
+e.preventDefault();goTab(ids[i]);$(".tab[aria-selected=true]").focus()});
 $("#q").addEventListener("input",render);
+function copiar(btn,txt){var ok=function(){btn.textContent="Copiado!";setTimeout(function(){btn.textContent="Copiar"},1600)},no=function(){btn.textContent="Copie à mão"};
+try{navigator.clipboard.writeText(txt).then(ok,no)}catch(x){no()}}
+$("#view").addEventListener("input",function(e){var f=e.target.dataset.f;if(f===undefined)return;
+var v=[].map.call(document.querySelectorAll(".bi"),function(i){return i.value.trim()}),p=[];
+if(v[0])p.push("Aja como "+v[0]+".");if(v[1])p.push("Contexto: "+v[1]+".");if(v[2])p.push(v[2].replace(/\.$/,"")+".");if(v[3])p.push("Formato: "+v[3]+".");
+var o=$("#bo");o.textContent=p.length?p.join(" "):"Seu pedido vai aparecer aqui.";o.dataset.ok=p.length?"1":""});
 $("#view").addEventListener("click",function(e){
 var f=e.target.closest(".fav");if(f){var k=f.dataset.k,i=fav.indexOf(k);i>-1?fav.splice(i,1):fav.push(k);try{localStorage.setItem("iasfav",JSON.stringify(fav))}catch(x){}var y=scrollY;render();scrollTo(0,y);return}
 var t=e.target.closest(".task");if(t){var k2=TASKS[+t.dataset.i];document.querySelectorAll(".task").forEach(function(b){b.setAttribute("aria-pressed",b===t)});
 $("#res").innerHTML="<b>"+esc(k2[0])+":</b><ul>"+k2[1].map(function(n){var x=ALL.filter(function(a){return a.n===n})[0];return x?'<li><a href="'+x.u+'" target="_blank" rel="noopener">'+esc(x.n)+'</a>: '+esc(x.d)+"</li>":""}).join("")+"</ul>";return}
-var c=e.target.closest(".copy");if(c){try{navigator.clipboard.writeText(EXS[+c.dataset.i]).then(function(){c.textContent="Copiado!"},function(){c.textContent="Copie à mão"})}catch(x){c.textContent="Copie à mão"}}});
+var c=e.target.closest(".copy");if(c){if(c.dataset.b){var o=$("#bo");if(!o.dataset.ok){c.textContent="Preencha antes";setTimeout(function(){c.textContent="Copiar"},1600);return}copiar(c,o.textContent)}else copiar(c,EXS[+c.dataset.i])}});
 var th=$("#th"),root=document.documentElement;
-function setT(d){root.dataset.theme=d?"dark":"light";th.textContent=d?"☀️ Modo claro":"🌙 Modo escuro"}
-setT(window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches);
-th.onclick=function(){setT(root.dataset.theme!=="dark")};
+function setT(d,save){root.dataset.theme=d?"dark":"light";th.textContent=d?"☀️ Modo claro":"🌙 Modo escuro";
+$('meta[name="theme-color"]').setAttribute("content",d?"#15112B":"#FFE45C");if(save){try{localStorage.setItem("iastheme",d?"dark":"light")}catch(x){}}}
+var savedT=null;try{savedT=localStorage.getItem("iastheme")}catch(e){}
+setT(savedT?savedT==="dark":(window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches));
+th.onclick=function(){setT(root.dataset.theme!=="dark",true)};
 $("#cnt").textContent=ALL.length;
 var names=ALL.map(function(x){return x.c.e+" "+x.n}).join("   ·   ");$("#mq").innerHTML=names+"   ·   "+names+"   ·   ";
 render();
