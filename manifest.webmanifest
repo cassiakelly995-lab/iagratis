@@ -1,0 +1,16 @@
+{
+  "name": "IAs grátis pra arrasar",
+  "short_name": "IAs Grátis",
+  "description": "Painel com IAs gratuitas, links diretos e manual de uso.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9E4FF",
+  "theme_color": "#FFE45C",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
