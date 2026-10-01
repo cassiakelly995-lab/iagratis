@@ -78,6 +78,13 @@ details li{margin:6px 0}
 .how li{margin:3px 0}
 .how .lb{font:700 13px Fredoka,sans-serif;margin:8px 0 0;color:var(--mut)}
 .how .ex{margin:4px 0 0;background:var(--card);font-size:14px}
+.ok{font-size:18px}
+.chk{display:flex;gap:8px;align-items:center;margin:12px 0 6px;font:700 14px Fredoka,sans-serif;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:#3DDC97}
+.nt{width:100%;padding:8px 10px;border:3px solid var(--b);border-radius:10px;background:var(--card);color:var(--ink);font:600 14px Nunito,sans-serif;resize:vertical}
+.priv{font-size:13px;margin:10px 0 0;color:var(--mut)}
+.bk{margin-top:22px;display:flex;gap:8px;flex-wrap:wrap}
+.pl{background:#3DDC97;color:#1A1233}
 .note{margin-top:30px;font-size:14px;color:var(--mut)}
 @media (prefers-reduced-motion:reduce){.mq div{animation:none}}
 </style>
@@ -186,12 +193,19 @@ var MAN=[
 ["Quando a resposta não ficou boa",'<ul><li>Peça de novo com mais contexto e formato.</li><li>Mostre um exemplo do que você quer.</li><li>Divida tarefas grandes em etapas pequenas.</li><li>Teste a mesma pergunta em outra IA e compare.</li><li>Se bateu o limite grátis, espere renovar ou use outra ferramenta da mesma guia.</li></ul>']];
 var $=function(s){return document.querySelector(s)},ALL=[],fav=[],cur="chat",TABIDS=["fav","man"];
 try{fav=JSON.parse(localStorage.getItem("iasfav")||"[]")}catch(e){}
+var NOTES={};try{NOTES=JSON.parse(localStorage.getItem("iasnotes")||"{}")}catch(e){}
+function saveN(){try{localStorage.setItem("iasnotes",JSON.stringify(NOTES))}catch(x){}}
+/* Etiqueta de plano: preencha só o que você conferir no site oficial.
+   Valores: "livre" (grátis), "limite" (grátis com limite), "teste" (só teste). */
+var PLANO={"Udio":"limite"},PLR={livre:"grátis",limite:"grátis com limite",teste:"só teste"};
+var BK='<div class="bk"><button class="copy" data-bk="exp">Exportar meus dados</button><button class="copy" data-bk="imp">Importar</button></div>';
 C.forEach(function(c){TABIDS.push(c.id);c.l.forEach(function(it){ALL.push({n:it[0],d:it[1],u:it[2],c:c})})});
 var h0=location.hash.slice(1);if(TABIDS.indexOf(h0)>-1)cur=h0;
 function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function norm(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
-function how(x){var h=HOW[x.n];if(!h)return"";return '<div class="how" hidden><ol>'+h.slice(0,3).map(function(t){return"<li>"+esc(t)+"</li>"}).join("")+'</ol>'+(h[3]?'<p class="lb">Teste assim:</p><div class="ex"><span>'+esc(h[3])+'</span><button class="copy" data-x="1">Copiar</button></div>':"")+'</div>'}
-function card(x){var f=fav.indexOf(x.n)>-1,hw=HOW[x.n]?'<button class="hw" aria-expanded="false" aria-label="Como usar '+esc(x.n)+'">💡 Como usar</button>':"";return '<article class="card" style="--c:'+x.c.c+'"><div class="top"><span class="em">'+x.c.e+'</span><h3>'+esc(x.n)+'</h3><button class="fav" data-k="'+esc(x.n)+'" aria-pressed="'+f+'" aria-label="Favoritar '+esc(x.n)+'">'+(f?"★":"☆")+'</button></div><p>'+esc(x.d)+'</p><div class="foot"><span class="tag">'+esc(x.c.n)+'</span><span class="acts">'+hw+'<a class="go" href="'+x.u+'" target="_blank" rel="noopener" aria-label="Abrir '+esc(x.n)+'">Abrir</a></span></div>'+how(x)+'</article>'}
+function how(x){var h=HOW[x.n];if(!h)return"";var nn=NOTES[x.n]||{},priv=["chat","est","prod"].indexOf(x.c.id)>-1?'<p class="priv">🔒 Não cole nomes, CPF, processos ou dados de pessoas atendidas.</p>':"";
+return '<div class="how" hidden><ol>'+h.slice(0,3).map(function(t){return"<li>"+esc(t)+"</li>"}).join("")+'</ol>'+(h[3]?'<p class="lb">Teste assim:</p><div class="ex"><span>'+esc(h[3])+'</span><button class="copy" data-x="1">Copiar</button></div>':"")+priv+'<label class="chk"><input type="checkbox" data-t="'+esc(x.n)+'"'+(nn.t?" checked":"")+'> Já testei</label><textarea class="nt" rows="2" data-n="'+esc(x.n)+'" aria-label="Minha nota sobre '+esc(x.n)+'" placeholder="Minha nota (fica só neste aparelho)">'+esc(String(nn.n||""))+'</textarea></div>'}
+function card(x){var f=fav.indexOf(x.n)>-1,hw=HOW[x.n]?'<button class="hw" aria-expanded="false" aria-label="Como usar '+esc(x.n)+'">💡 Como usar</button>':"";return '<article class="card" style="--c:'+x.c.c+'"><div class="top"><span class="em">'+x.c.e+'</span><h3>'+esc(x.n)+'</h3><span class="ok" title="Já testei"'+((NOTES[x.n]||{}).t?"":" hidden")+'>✔</span><button class="fav" data-k="'+esc(x.n)+'" aria-pressed="'+f+'" aria-label="Favoritar '+esc(x.n)+'">'+(f?"★":"☆")+'</button></div><p>'+esc(x.d)+'</p><div class="foot"><span><span class="tag">'+esc(x.c.n)+'</span>'+(PLANO[x.n]?' <span class="tag pl">'+PLR[PLANO[x.n]]+'</span>':"")+'</span><span class="acts">'+hw+'<a class="go" href="'+x.u+'" target="_blank" rel="noopener" aria-label="Abrir '+esc(x.n)+'">Abrir</a></span></div>'+how(x)+'</article>'}
 function tabBtn(id,label,color,count){var s=cur===id;return '<button class="tab" role="tab" style="--c:'+color+'" data-id="'+id+'" aria-selected="'+s+'" tabindex="'+(s?0:-1)+'">'+label+(count!==undefined?'<small>'+count+'</small>':'')+'</button>'}
 function tabs(){var h="";C.forEach(function(c){h+=tabBtn(c.id,c.e+' '+c.n,c.c,c.l.length)});
 h+=tabBtn("fav","⭐ Favoritas","#FFE45C",fav.length)+tabBtn("man","📖 Manual de uso","#3DDC97");$("#tabs").innerHTML=h}
@@ -199,7 +213,7 @@ function grid(a,msg){return a.length?'<div class="grid">'+a.map(card).join("")+'
 function render(){tabs();var raw=$("#q").value.trim(),t=norm(raw).split(/\s+/).filter(Boolean),v=$("#view"),st=$("#st");st.textContent="";
 if(t.length){var r=ALL.filter(function(x){var hay=norm(x.n+" "+x.d+" "+x.c.n+" "+x.c.k);return t.every(function(w){return hay.indexOf(w)>-1})});
 v.innerHTML=grid(r,'Nenhuma IA encontrada para "'+esc(raw)+'". Tente outra palavra.');st.textContent=r.length+" resultado(s) encontrado(s)";return}
-if(cur==="fav"){v.innerHTML=grid(ALL.filter(function(x){return fav.indexOf(x.n)>-1}),"Você ainda não tem favoritas. Toque na estrela ☆ de qualquer cartão para guardar aqui.");return}
+if(cur==="fav"){v.innerHTML=grid(ALL.filter(function(x){return fav.indexOf(x.n)>-1}),"Você ainda não tem favoritas. Toque na estrela ☆ de qualquer cartão para guardar aqui.")+BK;return}
 if(cur==="man"){v.innerHTML=MAN.map(function(s,i){return '<details'+(i===0?" open":"")+'><summary>'+s[0]+'</summary><div>'+s[1]+'</div></details>'}).join("");
 $("#tk").innerHTML=TASKS.map(function(k,i){return '<button class="task" data-i="'+i+'" aria-pressed="false">'+k[0]+'</button>'}).join("");
 $("#exs").innerHTML=EXS.map(function(t,i){return '<div class="ex"><span>'+esc(t)+'</span><button class="copy" data-i="'+i+'">Copiar</button></div>'}).join("");return}
@@ -212,12 +226,21 @@ var ids=[].map.call(document.querySelectorAll(".tab"),function(b){return b.datas
 i=k==="ArrowRight"?(i+1)%ids.length:k==="ArrowLeft"?(i-1+ids.length)%ids.length:k==="Home"?0:ids.length-1;
 e.preventDefault();goTab(ids[i]);$(".tab[aria-selected=true]").focus()});
 $("#q").addEventListener("input",render);
-function copiar(btn,txt){var ok=function(){btn.textContent="Copiado!";setTimeout(function(){btn.textContent="Copiar"},1600)},no=function(){btn.textContent="Copie à mão"};
+function copiar(btn,txt){var old=btn.textContent,ok=function(){btn.textContent="Copiado!";setTimeout(function(){btn.textContent=old},1600)},no=function(){btn.textContent="Copie à mão"};
 try{navigator.clipboard.writeText(txt).then(ok,no)}catch(x){no()}}
 $("#view").addEventListener("input",function(e){var f=e.target.dataset.f;if(f===undefined)return;
 var v=[].map.call(document.querySelectorAll(".bi"),function(i){return i.value.trim()}),p=[];
 if(v[0])p.push("Aja como "+v[0]+".");if(v[1])p.push("Contexto: "+v[1]+".");if(v[2])p.push(v[2].replace(/\.$/,"")+".");if(v[3])p.push("Formato: "+v[3]+".");
 var o=$("#bo");o.textContent=p.length?p.join(" "):"Seu pedido vai aparecer aqui.";o.dataset.ok=p.length?"1":""});
+function backup(b){if(b.dataset.bk==="exp"){copiar(b,JSON.stringify({f:fav,n:NOTES}));return}
+var t=prompt("Cole aqui o código que você exportou:");if(!t)return;
+try{var d=JSON.parse(t);if(!Array.isArray(d.f)||typeof d.n!=="object"||d.n===null)throw 0;
+fav=d.f.filter(function(x){return typeof x==="string"});NOTES=d.n;
+try{localStorage.setItem("iasfav",JSON.stringify(fav))}catch(x){}saveN();render()}
+catch(x){b.textContent="Código inválido";setTimeout(function(){b.textContent="Importar"},1800)}}
+$("#view").addEventListener("input",function(e){var n=e.target.dataset.n;if(n===undefined)return;(NOTES[n]=NOTES[n]||{}).n=e.target.value;saveN()});
+$("#view").addEventListener("change",function(e){var n=e.target.dataset.t;if(n===undefined)return;(NOTES[n]=NOTES[n]||{}).t=e.target.checked;saveN();
+var ok=e.target.closest(".card").querySelector(".ok");if(ok)ok.hidden=!e.target.checked});
 $("#view").addEventListener("click",function(e){
 var w=e.target.closest(".hw");if(w){var pn=w.closest(".card").querySelector(".how"),abrir=pn.hidden;
 document.querySelectorAll(".how").forEach(function(el){el.hidden=true});
@@ -226,7 +249,7 @@ if(abrir){pn.hidden=false;w.setAttribute("aria-expanded","true");w.textContent="
 var f=e.target.closest(".fav");if(f){var k=f.dataset.k,i=fav.indexOf(k);i>-1?fav.splice(i,1):fav.push(k);try{localStorage.setItem("iasfav",JSON.stringify(fav))}catch(x){}var y=scrollY;render();scrollTo(0,y);return}
 var t=e.target.closest(".task");if(t){var k2=TASKS[+t.dataset.i];document.querySelectorAll(".task").forEach(function(b){b.setAttribute("aria-pressed",b===t)});
 $("#res").innerHTML="<b>"+esc(k2[0])+":</b><ul>"+k2[1].map(function(n){var x=ALL.filter(function(a){return a.n===n})[0];return x?'<li><a href="'+x.u+'" target="_blank" rel="noopener">'+esc(x.n)+'</a>: '+esc(x.d)+"</li>":""}).join("")+"</ul>";return}
-var c=e.target.closest(".copy");if(c){if(c.dataset.x){copiar(c,c.previousElementSibling.textContent)}else if(c.dataset.b){var o=$("#bo");if(!o.dataset.ok){c.textContent="Preencha antes";setTimeout(function(){c.textContent="Copiar"},1600);return}copiar(c,o.textContent)}else copiar(c,EXS[+c.dataset.i])}});
+var c=e.target.closest(".copy");if(c){if(c.dataset.bk){backup(c)}else if(c.dataset.x){copiar(c,c.previousElementSibling.textContent)}else if(c.dataset.b){var o=$("#bo");if(!o.dataset.ok){c.textContent="Preencha antes";setTimeout(function(){c.textContent="Copiar"},1600);return}copiar(c,o.textContent)}else copiar(c,EXS[+c.dataset.i])}});
 var th=$("#th"),root=document.documentElement;
 function setT(d,save){root.dataset.theme=d?"dark":"light";th.textContent=d?"☀️ Modo claro":"🌙 Modo escuro";
 $('meta[name="theme-color"]').setAttribute("content",d?"#15112B":"#FFE45C");if(save){try{localStorage.setItem("iastheme",d?"dark":"light")}catch(x){}}}
